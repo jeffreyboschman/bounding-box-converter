@@ -1,9 +1,9 @@
-from helpers.parser import create_parser
+from helpers.parser import parse_arguements
 
 
 def main():
-    parser = create_parser()
-    config = parser.parse_args()
+    args = parse_arguements()
+    cfg = vars(args)
     
 
 
