@@ -40,9 +40,7 @@ class AnnotationConverter():
     
     def __init__(self, config):
         self.categories = config['categories']
-        self.categories = [helpers.standardize_string(item) for item in self.categories]
-        self.categories = list(set(self.categories))
-        self.categories.sort()
+        self.categories = helpers.clean_list(self.categories)
         
         self.input_annotation_format = config['input_annotation_format']
         self.input_annotations = config['input_annotations']
@@ -61,18 +59,9 @@ class AnnotationConverter():
 
         print(f'Using annotation file: {annotation_file}')
         root_dir = os.path.dirname(annotation_file)
-        with open(annotation_file, 'r') as f:
-            data = json.load(f)
-        
-        # The coco format json file has three sections of interest: categories, annotations, and images
-        categories = data['categories']
-        for cat in categories:
-            cat['name'] = helpers.standardize_string(cat['name'])
+        categories, annotations, images = helpers.get_coco_json_data(annotation_file)
+
         category_id_to_name_dict = {cat['id']:cat['name'] for cat in categories}
-        annotations = data['annotations']     
-        images = dict()
-        for img in data['images']:
-            images[img['id']] = img
 
         # Iterate over all annotations and add relevant ones to the default dict
         for annotation in annotations:
@@ -80,21 +69,16 @@ class AnnotationConverter():
             category = category_id_to_name_dict[category_id]
             if category in categories_of_interest:
                 current_category_count_dict[category] = current_category_count_dict.get(category, 0) + 1
-                self.category_count_dict[category] = self.category_count_dict.get(category, 0) + 1
-                bbox = annotation['bbox']
-                x_min, y_min, bbox_width, bbox_height = bbox[0], bbox[1], bbox[2], bbox[3]
+                self.category_count_dict[category] = self.category_count_dict.get(category, 0) + 1  # In case we want to count the total
+                
                 image_id = annotation['image_id']
-                img_data = images[image_id]
-                img_width = img_data['width']
-                img_height = img_data['height']
-                image_filename = img_data['file_name']
+                image_filename = images[image_id]['file_name']
                 image_filepath = os.path.join(root_dir, 'images', image_filename)
-                x_max = (x_min + bbox_width) / img_width
-                y_max = (y_min + bbox_height) / img_height
-                x_min = x_min / img_width
-                y_min = y_min / img_height
-                bbox_dict = {'category': category, 'orig_category_id': category_id,
-                                        'x_min': float(x_min), 'y_min': float(y_min), 'x_max': float(x_max), 'y_max': float(y_max), 'image_filepath': image_filepath}
+                
+                x_min, y_min, x_max, y_max = helpers.get_standard_bbox_coords_from_coco_bbox(annotation, images)
+
+                bbox_dict = {'category': category, 'orig_category_id': category_id, 'image_filepath': image_filepath,
+                                        'x_min': float(x_min), 'y_min': float(y_min), 'x_max': float(x_max), 'y_max': float(y_max)}
                 self.all_annotations_dict[image_filename].append(bbox_dict)
         sorted_ccc_dict = dict(sorted(current_category_count_dict.items()))
         print(sorted_ccc_dict)

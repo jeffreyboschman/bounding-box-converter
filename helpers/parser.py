@@ -6,7 +6,7 @@ def parse_arguements():
     subparser = parser.add_subparsers(dest='operation')
     convert_parser = subparser.add_parser('convert', help='For converting bbox annotations between different formats.')
 
-    convert_parser.add_argument('--categories', nargs='+', type=str, default=['cat','dog'], help='The categories we are interested in. Just separate them with a space.')
+    convert_parser.add_argument('--categories', nargs='+', type=str, default=['cat','dog', 'zebra', 'giraffe'], help='The categories we are interested in. Just separate them with a space.')
 
     convert_parser.add_argument('--input_annotation_format', type=str, choices=['coco_json', 'oidv6_csv', 'yolo_textfiles'], default='coco_json',
         help='The style of the annotations that we want to convert into a different style. (yolo_textfiles not implemented yet). Default: coco_json')
