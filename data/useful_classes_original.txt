@@ -1,0 +1,45 @@
+/m/015p6,Bird
+/m/01dws,Bear
+/m/01dxs,Brown bear
+/m/01xq0k1,Cattle
+/m/01x_v,Camel
+/m/01yrx,Cat
+/m/0306r,Fox
+/m/03bj1,Panda
+/m/03bk1,Giraffe 
+/m/03d443,Rhinoceros 
+/m/03k3r,Horse
+/m/0449p,Jaguar (Animal)
+/m/04c0y,Kangaroo
+/m/04cp_,Koala
+/m/04g2r,Lynx
+/m/04m9y,Lizard
+/m/05n4y,Ostrich 
+/m/05z6w,Penguin 
+/m/0633h,Polar bear
+/m/068zj,Pig 
+/m/06l9r,Red panda
+/m/06mf6,Rabbit
+/m/071qp,Squirrel
+/m/0755b,Scorpion
+/m/078jl,Snake
+/m/07bgp,Sheep
+/m/07dm6,Tiger
+/m/0898b,Zebra
+/m/08pbxl,Monkey 
+/m/096mb,Lion
+/m/09csl,Eagle
+/m/09d5_,Owl
+/m/09f20,Hippopotamus
+/m/09f_2,Crocodile
+/m/09kx5,Deer
+/m/0bt9lr,Dog
+/m/0bwd_0j,Elephant
+/m/0c29q,Leopard
+/m/0c568,Porcupine
+/m/0cd4d,Cheetah
+/m/0cn6p,Otter
+/m/0czz2,Antelope
+/m/0dq75,Raccoon
+/m/0km7z,Skunk
+/m/0pcr,Alpaca
