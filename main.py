@@ -10,8 +10,6 @@ def main():
         ac = AnnotationConverter(cfg)
         ac.run()
 
-    
-
 
 if __name__ == "__main__":
    main() 
