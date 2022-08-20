@@ -1,6 +1,7 @@
 import os
 import json
 import pathlib
+import helpers.constants as c
 
 
 def ensure_directory_exists(dir_path):
@@ -80,3 +81,28 @@ def get_standard_bbox_coords_from_coco_bbox(annotation_dict, image_dicts):
     y_min = y_min / image_height
     
     return x_min, y_min, x_max, y_max
+
+def get_oid_category_id_to_name_dict(categories_of_interest, categories_file=c.OID_CATEGORY_ID_TO_NAME_FILE):
+    """Creates dictionary that maps category_id to category_name
+        
+    Attributes
+    ----------
+
+    categories_file: str
+        The path to a file with lines: category_id, category_name
+
+    categories: list of str
+        A list of categories that we want to use
+
+    categories_dict: dict
+        A dict with key:value = category_id:category
+    """
+    category_id_to_name_dict = dict()
+    with open(categories_file, 'r') as f:
+        for line in f:
+            category_id, category = line.split(',')
+            category = standardize_string(category)
+            if category in categories_of_interest:
+                category_id_to_name_dict[category_id] = category
+
+    return category_id_to_name_dict
