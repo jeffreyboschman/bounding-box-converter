@@ -4,3 +4,8 @@ This repository is for converting between different bounding-box formats. Common
 * coco format
 * yolo format
 * open images dataset format
+
+## Installation
+```
+conda install tqdm
+```
