@@ -82,6 +82,7 @@ class AnnotationConverter():
         print(sorted_ccc_dict)
 
 
+
     def convert_oid_csv_to_dict(self, annotation_file, categories_of_interest):
         """Extracts bbox information from csv files in the Open Images Dataset V6 format and puts in a default dict
         """        

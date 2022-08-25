@@ -9,3 +9,8 @@ This repository is for converting between different bounding-box formats. Common
 ```
 conda install tqdm
 ```
+
+## Testing
+```
+$ python -m unittest
+```
