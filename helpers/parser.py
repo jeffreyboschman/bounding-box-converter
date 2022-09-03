@@ -19,7 +19,10 @@ def parse_arguements():
 
     convert_parser.add_argument('--output_annotations', type=str, default='./data/yolo_textfiles_examples/',
         help='The path to the output annotations. When output_annotation_format is coco_json or oidv6_csv, this is a file (not implemented yet). When output_annotation_format is yolo_textfiles, this is a folder. Default: ./examples/yolo_textfiles_examples/')
-    
+
+    convert_parser.add_argument('--test_split_percentage', type=int, default=0,
+        help='The percentage of images to randomly split into a test set.')
+
     args = parser.parse_args()
 
     return args

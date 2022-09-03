@@ -8,6 +8,7 @@ This repository is for converting between different bounding-box formats. Common
 ## Installation
 ```
 conda install tqdm
+conda install yaml
 ```
 
 ## Testing

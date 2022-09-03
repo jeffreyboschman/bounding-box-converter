@@ -11,9 +11,10 @@ class TestConvert(unittest.TestCase):
                     'input_annotation_format': 'coco_json', \
                     'input_annotations': './data/coco_ex.json', \
                     'output_annotation_format': 0, \
-                    'output_annotations': 0}
+                    'output_annotations': 0,
+                    'test_split_percentage': 0}
         ac = AnnotationConverter(config)
-        ac.convert_coco_json_to_dict(ac.input_annotations, ac.categories)
+        ac.convert_coco_json_to_dict(ac.input_annotations)
         all_annotations_dict = ac.all_annotations_dict
         result = all_annotations_dict['000000236730.jpg'][0]['category']
         self.assertEqual(result, 'zebra')
@@ -22,9 +23,10 @@ class TestConvert(unittest.TestCase):
                     'input_annotation_format': 'coco_json', \
                     'input_annotations': './data/coco_ex.json', \
                     'output_annotation_format': 0, \
-                    'output_annotations': 0}
+                    'output_annotations': 0,
+                    'test_split_percentage': 0}
         ac = AnnotationConverter(config)
-        ac.convert_coco_json_to_dict(ac.input_annotations, ac.categories)
+        ac.convert_coco_json_to_dict(ac.input_annotations)
         all_annotations_dict = ac.all_annotations_dict  # Should be an empty defaultdict, which evaluates to False. 
         self.assertFalse(all_annotations_dict)
 

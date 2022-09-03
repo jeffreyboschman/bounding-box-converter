@@ -1,6 +1,9 @@
 import os
 import csv
+#import yaml
+import random
 from tqdm import tqdm
+from pathlib import Path
 
 from collections import defaultdict
 import helpers.helpers as helpers
@@ -45,20 +48,21 @@ class AnnotationConverter():
         self.input_annotations = config['input_annotations']
         self.output_annotation_format = config['output_annotation_format']
         self.output_annotations = config['output_annotations']
+        self.test_split_percentage = config['test_split_percentage']
         
         self.category_count_dict = dict()
         self.all_annotations_dict = defaultdict(list)
 
 
-    def convert_coco_json_to_dict(self, annotation_file, categories_of_interest):
-        """Extracts bbox information from json files in the coco format (also used by LILABC datasets) and puts in a default dict
+    def convert_coco_json_to_dict(self, annotation_file):
+        """Extracts bbox information from json files in the coco format (also used by LILABC datasets) and puts in self.all_annotations_dict
         """
         print(f'Using annotation file: {annotation_file}')
         root_dir = os.path.dirname(annotation_file)
         categories, annotations, images = helpers.get_coco_json_data(annotation_file)
 
         category_id_to_name_dict = {cat['id']:cat['name'] for cat in categories}
-        categories_of_interest = set(categories_of_interest)
+        categories_of_interest = set(self.categories)
         current_category_count_dict = dict()
 
         # Iterate over all annotations and add relevant ones to the default dict
@@ -82,14 +86,13 @@ class AnnotationConverter():
         print(sorted_ccc_dict)
 
 
-
     def convert_oid_csv_to_dict(self, annotation_file, categories_of_interest):
-        """Extracts bbox information from csv files in the Open Images Dataset V6 format and puts in a default dict
+        """Extracts bbox information from csv files in the Open Images Dataset V6 format and puts in self.all_annotations_dict
         """        
         print(f'Using annotation file: {annotation_file}')
         root_dir = os.path.dirname(annotation_file)
         
-        categories_of_interest = set(categories_of_interest)
+        categories_of_interest = set(self.categories)
         category_id_to_name_dict = helpers.get_oid_category_id_to_name_dict(categories_of_interest)
         current_category_count_dict = dict()
 
@@ -113,9 +116,69 @@ class AnnotationConverter():
         print(sorted_ccc_dict)
 
 
+    def write_yolo_textfiles(self, output_dir, annotations_dict):
+        """Creates annotation textfiles in the format required by: https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data
+        """
+        print(f"Writing annotation textfiles in {output_dir}")
+        helpers.ensure_directory_exists(output_dir)
+        ## Create the individual textfiles for each image
+        for image_filename in tqdm(annotations_dict):
+            image_filename_stem = Path(image_filename).stem    
+            suffix = '.txt'
+            output_filepath = os.path.join(output_dir, image_filename_stem + suffix)
+            with open(output_filepath, 'w') as f:
+                for bbox in annotations_dict[image_filename]:
+                    category = bbox['category']
+                    category_int = self.categories.index(category)
+                    x_min, x_max = bbox['x_min'], bbox['x_max']
+                    y_min, y_max = bbox['y_min'], bbox['y_max']
+                    x_center = (x_min + x_max) / 2
+                    y_center = (y_min + y_max) / 2
+                    bbox_width = x_max - x_min
+                    bbox_height = y_max - y_min
+                    data = [category_int, x_center, y_center, bbox_width, bbox_height]
+                    line = ' '.join(map(str,data)) + "\n"
+                    f.write(line)
+        
+        # ## Create the dataset.yaml file
+        # yaml_dict = {}
+        # yaml_dict['path'] = 'rootdir  # Please change'
+        # yaml_dict['train'] = 'images/train'
+        # yaml_dict['val'] = 'images/val'
+        # yaml_dict['test'] = 'images/test'
+
+        # nc = len(self.categories)
+        # yaml_dict['nc'] = nc
+        # yaml_dict['names'] = self.categories
+        
+        # output_yaml = os.path.join(output_dir, 'dataset.yaml')
+        # with open(output_yaml, 'w') as yaml_f:
+        #     data1 = yaml.dump(yaml_dict, yaml_f, default_flow_style=None)
+
+    def split_dictionary_train_test(self, test_size):
+        """Randomly splits an annotations_dict into separate dictionaries for training and testing.)
+        """
+        annotations_list = [(key, value) for key, value in self.all_annotations_dict.items()]
+        num = len(annotations_list)
+        random.shuffle(annotations_list)
+        
+        train_annotations_list = annotations_list[int((num+1)*test_size):]
+        test_annotations_list = annotations_list[:int((num+1)*test_size)]
+        train_annotations_dict = dict(train_annotations_list)
+        test_annotations_dict = dict(test_annotations_list)
+        return train_annotations_dict, test_annotations_dict
+
     def run(self):
         print(f"\nThe list of categories used (in the order of index class labels) is:\n{self.categories}\n")
         if self.input_annotation_format == 'coco_json':
-            self.convert_coco_json_to_dict(self.input_annotations, self.categories)
+            self.convert_coco_json_to_dict(self.input_annotations)
         elif self.input_annotation_format == 'oid_csv':
-            self.convert_oid_csv_to_dict(self.input_annotations, self.categories)
+            self.convert_oid_csv_to_dict(self.input_annotations)
+
+        if self.output_annotation_format == 'yolo_textfiles':
+            if self.test_split_percentage > 0:
+                train_annotations_dict, test_annotations_dict = self.split_dictionary_train_test(self.test_split_percentage)
+                self.write_yolo_textfiles(os.path.join(self.output_annotations, 'train'), train_annotations_dict)
+                self.write_yolo_textfiles(os.path.join(self.output_annotations, 'val'), test_annotations_dict)
+            else:
+                self.write_yolo_textfiles(self.output_annotations, self.all_annotations_dict)
