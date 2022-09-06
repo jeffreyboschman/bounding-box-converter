@@ -1,5 +1,6 @@
 import os
 import csv
+import json
 #import yaml
 import random
 from tqdm import tqdm
@@ -86,7 +87,7 @@ class AnnotationConverter():
         print(sorted_ccc_dict)
 
 
-    def convert_oid_csv_to_dict(self, annotation_file, categories_of_interest):
+    def convert_oid_csv_to_dict(self, annotation_file):
         """Extracts bbox information from csv files in the Open Images Dataset V6 format and puts in self.all_annotations_dict
         """        
         print(f'Using annotation file: {annotation_file}')
@@ -114,6 +115,76 @@ class AnnotationConverter():
                     self.all_annotations_dict[image_filename].append(bbox_dict)
         sorted_ccc_dict = dict(sorted(current_category_count_dict.items()))
         print(sorted_ccc_dict)
+
+    def convert_yolo_textfiles_to_dict(annotation_dir):
+        pass
+
+    def write_coco_json(self, output_file, annotations_dict):
+        print(f"Writing coco json file {output_file}")
+        helpers.ensure_directory_exists(os.path.dirname(output_file))
+
+        json_dict = {}
+        json_dict['info'] = {'year': 2022, 'version': 1.0, 'description': 'created with dataset API', 'contributor': 'na', 'url': 'na', 'date_created': 'na'}
+        json_dict['licenses'] = [{'url':'N/A', 'id': 1, 'name': 'N/A'}]
+        json_dict['categories'] = []
+      
+
+        for idx, category in enumerate(self.categories):
+            category_dict = {'id': idx, 'name': category, 'supercategory': 'na'}
+            json_dict['categories'].add(category_dict)
+
+        json_dict['images'] = []
+        json_dict['annotations'] = []
+        for image_filename in tqdm(annotations_dict):
+            image_filename_stem = Path(image_filename).stem
+            #height 
+            #width
+            image_dict = {'id': image_filename_stem, 'license': 1, 'file_name': image_filename, 'height': height, 'width': width, 'date_captured': 'na'}
+            
+            for bbox in annotations_dict[image_filename]:
+                pass
+    
+    def coco_to_coco(self, input_annotation_file, output_annotation_file):
+        print(f'Using annotation file: {input_annotation_file}')
+        root_dir = os.path.dirname(input_annotation_file)
+        categories, annotations, images = helpers.get_coco_json_data(input_annotation_file)
+
+        category_id_to_name_dict = {cat['id']:cat['name'] for cat in categories}
+        categories_of_interest = set(self.categories)
+        current_category_count_dict = dict()
+
+        json_dict = {}
+        json_dict['info'] = {'year': 2022, 'version': 1.0, 'description': 'created with dataset API', 'contributor': 'na', 'url': 'na', 'date_created': 'na'}
+        json_dict['licenses'] = [{'url':'N/A', 'id': 1, 'name': 'N/A'}]
+        json_dict['categories'] = []
+
+        for idx, category in enumerate(self.categories):
+            category_dict = {'id': idx, 'name': category, 'supercategory': 'na'}
+            json_dict['categories'].add(category_dict)
+
+        json_dict['images'] = []
+        json_dict['annotations'] = []
+        included_images = set()
+        for image_id in images:
+            image_filename = images[image_id]['file_name']
+            image_filepath = os.path.join(root_dir, 'images', image_filename)
+            if os.path.exists(image_filepath):
+                included_images.add(image_id)
+                image_dict = {'id': image_id, 'license': 1, 'file_name': image_filename, 'height': images[image_id]['height'], 'width': images[image_id]['width'], 'date_captured': 'na'}
+                json_dict['images'].append(image_dict)
+        for annotation in annotations:
+            if annotation['image_id'] in included_images: 
+                category = category_id_to_name_dict[annotation["category_id"]]
+                if category in categories_of_interest:
+                    new_category_id = self.categories.index(category)
+                    annotation_dict = {"id": annotation["id"], "image_id": annotation["image_id"], "bbox": annotation["bbox"], \
+                                    "segmentation": [0], "area": annotation["area"], "is_crowd": annotation["is_crowd"], \
+                                    "category_id": new_category_id}
+                    json_dict['annotations'].append(annotation_dict)
+
+        with open(output_annotation_file, 'w', encoding='utf-8') as f:
+            json.dump(json_dict, f, ensure_ascii=False, indent=4)
+
 
 
     def write_yolo_textfiles(self, output_dir, annotations_dict):
